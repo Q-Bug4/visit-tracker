@@ -28,7 +28,6 @@ function bindLink(link) {
 function handleMouseEnter(event) {
   const target = event.target;
   console.log("enter mouse")
-  console.log(event);
   // 处理鼠标进入事件
   handleMouseOver(event)
 }
@@ -49,11 +48,14 @@ console.log("top!");
 function handleMouseOver(event) {
   const link = event.target;
   chrome.runtime.sendMessage({ action: 'checkHistory', url: link.href }, function (response) {
-    if (response && response.visited) {
+    console.log(response);
+    if (response && response.visitCount > 0) {
+      const visitCount = response.visitCount;
+      const lastVisitTime = response.lastVisitTime;
       if (tooltip) {
         tooltip.remove();
       }
-      tooltip = showTooltip(link, '已访问');
+      tooltip = showTooltip(link, visitCount, lastVisitTime);
       console.log("visited !!")
     }
   });
@@ -67,9 +69,15 @@ function handleMouseOut(event) {
   }
 }
 
-function showTooltip(element, message) {
+function showTooltip(element, visitCount, lastVisitTime) {
   const tooltip = document.createElement('div');
-  tooltip.innerText = message;
+  const visitCountText = document.createElement('div');
+  visitCountText.textContent = `访问次数: ${visitCount}次`;
+  tooltip.appendChild(visitCountText);
+
+  const lastVisitTimeText = document.createElement('div');
+  lastVisitTimeText.textContent = `最近访问时间: ${lastVisitTime}`;
+  tooltip.appendChild(lastVisitTimeText);
 
   tooltip.style.position = 'absolute';
   tooltip.style.zIndex = '9999';
