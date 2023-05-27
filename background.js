@@ -13,7 +13,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
           };
           sendResponse(response);
         } else {
-          sendResponse(null);
+          sendResponse({ visitCount: 0, lastVisitTime: null });
         }
       });
   

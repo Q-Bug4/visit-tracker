@@ -2,12 +2,26 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <script src="popup.js"></script>
     <title>History Checker</title>
+    <style>
+      .popup-container {
+        display: inline-block;
+        white-space: nowrap;
+      }
+      .popup-content {
+        display: inline-block;
+        padding: 5px 10px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+      }
+    </style>
   </head>
   <body>
-    <h1>History Checker</h1>
-    <div id="result"></div>
-
-    <script src="popup.js"></script>
+    <div id="history-info"  class="popup-container">
+      <p id="visit-count" class="popup-content">访问次数：</p>
+      <p id="last-visit-time" class="popup-content">最近访问时间：</p>
+    </div>
+    
   </body>
 </html>
