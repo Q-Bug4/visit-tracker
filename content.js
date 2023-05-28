@@ -86,6 +86,8 @@ function showTooltip(element, visitCount, lastVisitTime) {
   tooltip.style.padding = '5px';
   tooltip.style.fontSize = '14px';
   tooltip.style.borderRadius = '3px';
+  tooltip.style['box-shadow'] = '2px 2px 6px rgba(0, 0, 0, 0.3)';
+  tooltip.style['border'] = '2px solid #000';
 
   const rect = element.getBoundingClientRect();
   const top = rect.top + window.pageYOffset + rect.height + 5;
