@@ -8,9 +8,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       savedListType = data.listType ?? 'blacklist';
       savedBlacklist = data.blacklist ?? '';
       savedWhitelist = data.whitelist ?? '';
-      let shouldAbort = (savedListType == 'blacklist')
-        ? savedBlacklist !== '' && !!savedBlacklist.split("\n").find(rule => new RegExp(rule).test(url))
-        : savedWhitelist !== '' && !savedWhitelist.split("\n").find(rule => new RegExp(rule).test(url))
+      if (savedListType === 'none') {
+        shouldAbort = false;
+      } else {
+        shouldAbort = (savedListType == 'blacklist')
+          ? savedBlacklist !== '' && !!savedBlacklist.split("\n").find(rule => new RegExp(rule).test(url))
+          : savedWhitelist !== '' && !savedWhitelist.split("\n").find(rule => new RegExp(rule).test(url))
+      }
       if (shouldAbort) {
         return;
       }
