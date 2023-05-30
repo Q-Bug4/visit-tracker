@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 保存设置和名单内容到 chrome.storage
         chrome.storage.local.set({ listType: listType, blacklist: blacklist, whitelist: whitelist }, function () {
+            window.close()
         });
     });
 });
