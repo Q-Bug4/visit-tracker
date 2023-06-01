@@ -18,10 +18,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       if (shouldAbort) {
         return;
       }
-      chrome.history.search({ text: url, startTime: 0 }, function (results) {
+      chrome.history.search({ text: url, startTime: 0, maxResults: 999999 }, function (results) {
         let matchResults = results.filter(res => res.url === url)
         if (results.length == 0 || matchResults.length == 0) {
-          sendResponse({ visitCount: 0, lastVisitTime: null });
+          sendResponse({ visitCount: 0, lastVisitTime: null, results });
           return;
         }
         const historyItem = matchResults[0];
@@ -29,6 +29,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         const lastVisitTime = new Date(historyItem.lastVisitTime);
         sendResponse({
           visitCount: visitCount,
+          results,
           lastVisitTime: lastVisitTime.toLocaleString()
         });
       });

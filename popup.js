@@ -28,7 +28,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 监听保存按钮点击事件
     saveButton.addEventListener('click', function () {
-        let listType = whitelistRadio.checked || blacklistRadio.checked || 'none';
+        let listType = 'none'
+        if (whitelistRadio.checked) {
+            listType = 'whitelist'
+        } else if (whitelistRadio.checked) {
+            listType = 'whitelist'
+        } 
 
         const blacklist = blacklistInput.value;
         const whitelist = whitelistInput.value;
