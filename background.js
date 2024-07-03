@@ -2,8 +2,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'checkHistory') {
       let url = request.url;
       
-      // 查询历史记录
-      chrome.history.search({ text: url, maxResults: 1000 }, (results) => {
+      // 查询全部历史记录
+      chrome.history.search({ text: url, startTime: 0 }, (results) => {
         let visits = results.filter(result => result.url === url);
         if (visits.length > 0) {
           let lastVisitTime = visits[0].lastVisitTime;

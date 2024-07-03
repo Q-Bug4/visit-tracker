@@ -5,7 +5,8 @@
     "description": "Displays the last visit time and visit count of links in the browsing history.",
     "permissions": [
       "history",
-      "activeTab"
+      "activeTab",
+      "storage"
     ],
     "background": {
       "service_worker": "background.js"
@@ -16,11 +17,11 @@
         "js": ["content.js"]
       }
     ],
-    "web_accessible_resources": [
-      {
-        "resources": ["popup.html"],
-        "matches": ["<all_urls>"]
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "images/icon16.png"
       }
-    ]
+    }
   }
   
