@@ -1,103 +1,89 @@
-const initLinks = document.getElementsByTagName('a');
-for (let i = 0; i < initLinks.length; i++) {
-  bindLink(initLinks[i]);
-}
-// 创建一个 MutationObserver 实例
-const observer = new MutationObserver(function (mutations) {
-  console.log("observer start");
-  mutations.forEach(function (mutation) {
-    if (mutation.type === 'childList') {
-      // 监听到子元素变化
-      const addedNodes = mutation.addedNodes;
-      addedNodes.forEach(function (node) {
-        if (node.nodeType === Node.ELEMENT_NODE && node.matches('a')) {
-          // 新增的节点是 <a> 元素
-          bindLink(node)
+// 创建提示框的HTML模板
+const createPopup = (lastVisitTime, visitCount) => {
+    let popup = document.createElement('div');
+    popup.style.position = 'absolute';
+    popup.style.backgroundColor = 'white';
+    popup.style.border = '1px solid black';
+    popup.style.padding = '10px';
+    popup.style.zIndex = 1000;
+    popup.innerHTML = `
+      <div style="text-align: right;">
+        <button style="background: none; border: none; cursor: pointer; font-size: 16px;">&times;</button>
+      </div>
+      <p>Last visited: ${new Date(lastVisitTime).toLocaleString()}</p>
+      <p>Visit count: ${visitCount}</p>
+    `;
+  
+    // 关闭按钮事件
+    popup.querySelector('button').addEventListener('click', () => {
+      document.body.removeChild(popup);
+    });
+  
+    return popup;
+  };
+  
+  // 自定义转换方法
+  const customTransform = (url) => {
+    // 在此添加自定义转换逻辑，目前直接返回传入的URL
+    return url;
+  };
+  
+  // 定义禁用网站列表
+  let disableSites = [];
+  
+  // 加载禁用网站列表
+  const loadDisableSites = () => {
+    chrome.storage.sync.get(['disableSites'], (result) => {
+      disableSites = result.disableSites || [];
+    });
+  };
+  
+  // 初始化加载禁用网站列表
+  loadDisableSites();
+  
+  // 监听禁用网站列表的变化
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'sync' && changes.disableSites) {
+      disableSites = changes.disableSites.newValue || [];
+    }
+  });
+  
+  // 监听鼠标悬浮事件
+  document.addEventListener('mouseover', (event) => {
+    let target = event.target.closest('a');
+    if (target) {
+      let url = target.href;
+      let currentSite = window.location.hostname;
+  
+      // 检查当前网站是否在禁用列表中
+      for (let regex of disableSites) {
+        if (new RegExp(regex).test(currentSite)) {
+          return;
+        }
+      }
+  
+      // 调用自定义转换方法
+      url = customTransform(url);
+  
+      // 发送消息到 background.js 查询历史记录
+      chrome.runtime.sendMessage({ action: 'checkHistory', url }, (response) => {
+        if (response.lastVisitTime) {
+          let popup = createPopup(response.lastVisitTime, response.visitCount);
+          document.body.appendChild(popup);
+  
+          // 定位提示框
+          let rect = target.getBoundingClientRect();
+          popup.style.top = `${rect.bottom + window.scrollY}px`;
+          popup.style.left = `${rect.left + window.scrollX}px`;
+  
+          // 隐藏或销毁提示框
+          target.addEventListener('mouseout', () => {
+            if (popup && popup.parentNode) {
+              document.body.removeChild(popup);
+            }
+          }, { once: true });
         }
       });
     }
   });
-});
-
-function bindLink(link) {
-  link.addEventListener('mouseover', handleMouseOver);
-  link.addEventListener('mouseout', handleMouseOut);
-  link.addEventListener('mouseenter', handleMouseEnter);
-  link.addEventListener('mouseleave', handleMouseLeave);
-}
-function handleMouseEnter(event) {
-  const target = event.target;
-  console.log("enter mouse")
-  // 处理鼠标进入事件
-  handleMouseOver(event)
-}
-
-function handleMouseLeave(event) {
-  const target = event.target;
-  console.log("leave mouse")
-  // 处理鼠标离开事件
-  handleMouseOut(event)
-}
-
-// 监听整个 document 内容的变化
-observer.observe(document, { childList: true, subtree: true });
-
-let tooltip = null;
-console.log("top!");
-
-function handleMouseOver(event) {
-  const link = event.target;
-  chrome.runtime.sendMessage({ action: 'checkHistory', url: link.href }, function (response) {
-    console.log(response);
-    if (response && response.visitCount > 0) {
-      const visitCount = response.visitCount;
-      const lastVisitTime = response.lastVisitTime;
-      if (tooltip) {
-        tooltip.remove();
-      }
-      tooltip = showTooltip(link, visitCount, lastVisitTime);
-      console.log("visited !!")
-    }
-  });
-}
-
-function handleMouseOut(event) {
-  const link = event.target;
-  if (tooltip && link.dataset.tooltipId === tooltip.dataset.tooltipId) {
-    tooltip.remove();
-    tooltip = null;
-  }
-}
-
-function showTooltip(element, visitCount, lastVisitTime) {
-  const tooltip = document.createElement('div');
-  const visitCountText = document.createElement('div');
-  visitCountText.textContent = `访问次数: ${visitCount}次`;
-  tooltip.appendChild(visitCountText);
-
-  const lastVisitTimeText = document.createElement('div');
-  lastVisitTimeText.textContent = `最近访问时间: ${lastVisitTime}`;
-  tooltip.appendChild(lastVisitTimeText);
-
-  tooltip.style.position = 'absolute';
-  tooltip.style.zIndex = '9999';
-  tooltip.style.backgroundColor = '#333';
-  tooltip.style.color = '#fff';
-  tooltip.style.padding = '5px';
-  tooltip.style.fontSize = '14px';
-  tooltip.style.borderRadius = '3px';
-  tooltip.style['box-shadow'] = '2px 2px 6px rgba(0, 0, 0, 0.3)';
-  tooltip.style['border'] = '2px solid #000';
-
-  const rect = element.getBoundingClientRect();
-  const top = rect.top + window.pageYOffset + rect.height + 5;
-  const left = rect.left + window.pageXOffset + rect.width - 150;
-
-  tooltip.style.top = top + 'px';
-  tooltip.style.left = left + 'px';
-
-  document.body.appendChild(tooltip);
-
-  element.dataset.tooltipId = tooltip.dataset.tooltipId = Date.now().toString();
-  return tooltip;
-}
+  
